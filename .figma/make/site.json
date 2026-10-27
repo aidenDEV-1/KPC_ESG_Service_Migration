@@ -1,0 +1,10 @@
+{
+  "description": "Interactive prototype replicates existing ESG web service screens with exact layout and navigation for seamless user experience testing without backend integration.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}

@@ -1,0 +1,499 @@
+[/workspaces/default/code/src/components/adm/QuestionLibraryBasicSet.tsx#54fa]
+1:import { useState } from 'react';
+2:
+3:interface Question {
+4:  no: string;
+5:  parentNo?: string;
+6:  title: string;
+7:  type: string;
+8:  attachment: string;
+9:  updated: string;
+10:  campaigns: number;
+11:  campaignList?: { name: string; client: string; period: string; status: string }[];
+12:}
+13:
+14:interface FolderNode {
+15:  id: string;
+16:  label: string;
+17:  children?: FolderNode[];
+18:}
+19:
+20:const FOLDER_TREE: FolderNode[] = [
+21:  {
+22:    id: 'L', label: '▼ L.노동', children: [
+23:      { id: 'L-고용', label: '고용 관리' },
+24:      { id: 'L-근로', label: '근로 조건' },
+25:      { id: 'L-임금', label: '임금 관리' },
+26:      { id: 'L-휴가', label: '휴가·휴직' },
+27:      { id: 'L-비정규', label: '비정규직 관리' },
+28:    ],
+29:  },
+30:  {
+31:    id: 'S', label: '▼ S.인권', children: [
+32:      { id: 'S-인권정책', label: '인권 정책' },
+33:      { id: 'S-차별', label: '차별 금지' },
+34:      { id: 'S-아동', label: '아동노동 금지' },
+35:      { id: 'S-강제', label: '강제노동 금지' },
+36:      { id: 'S-결사', label: '결사의 자유' },
+37:    ],
+38:  },
+39:  {
+40:    id: 'E', label: '▼ E.환경', children: [
+41:      { id: 'E-환경정책', label: '환경 정책' },
+42:      { id: 'E-온실', label: '온실가스 관리' },
+43:      { id: 'E-폐기물', label: '폐기물 관리' },
+44:      { id: 'E-수자원', label: '수자원 관리' },
+45:      { id: 'E-에너지', label: '에너지 관리' },
+46:    ],
+47:  },
+48:  {
+49:    id: 'ET', label: '▼ E.윤리', children: [
+50:      { id: 'ET-윤리경영', label: '윤리 경영' },
+51:      { id: 'ET-공정거래', label: '공정 거래' },
+52:      { id: 'ET-부패', label: '부패 방지' },
+53:      { id: 'ET-이해충돌', label: '이해충돌 관리' },
+54:      { id: 'ET-개인정보', label: '개인정보 보호' },
+55:    ],
+56:  },
+57:  {
+58:    id: 'M', label: '▼ M.경영', children: [
+59:      { id: 'M-지배구조', label: '지배구조' },
+60:      { id: 'M-공급망', label: '공급망 관리' },
+61:      { id: 'M-ESG공시', label: 'ESG 공시' },
+62:      { id: 'M-리스크', label: '리스크 관리' },
+63:      { id: 'M-이해관계자', label: '이해관계자 소통' },
+64:    ],
+65:  },
+66:  {
+67:    id: 'D', label: '▼ D.기본정보', children: [
+68:      { id: 'D-회사', label: '회사 일반 현황' },
+69:      { id: 'D-인력', label: '인력 현황' },
+70:      { id: 'D-재무', label: '재무 현황' },
+71:      { id: 'D-공급망', label: '공급망 현황' },
+72:      { id: 'D-인증', label: '인증·수상 현황' },
+73:    ],
+74:  },
+75:];
+76:
+77:const QUESTIONS_BY_FOLDER: Record<string, Question[]> = {
+78:  'L-고용': [
+79:    { no: '1', title: '귀사는 공개 채용 원칙을 수립하고 있습니까?', type: '라디오', attachment: 'N', updated: '26.09.10', campaigns: 2, campaignList: [{ name: '2026 삼성 공급망 ESG 평가', client: 'samsung', period: '2026-03 ~ 2026-06', status: '종료' }, { name: '2026 SK 협력사 ESG 평가', client: 'sk', period: '2026-05 ~ 2026-08', status: '진행중' }] },
+80:    { no: '2', title: '채용 시 근로계약서를 서면으로 체결하고 있습니까?', type: '라디오', attachment: 'Y', updated: '26.08.15', campaigns: 1, campaignList: [{ name: '2026 SK 협력사 ESG 평가', client: 'sk', period: '2026-05 ~ 2026-08', status: '진행중' }] },
+81:    { no: '3', title: '수습 기간 제도를 운영하고 있습니까?', type: '라디오', attachment: 'N', updated: '26.07.20', campaigns: 2, campaignList: [{ name: '2026 삼성 공급망 ESG 평가', client: 'samsung', period: '2026-03 ~ 2026-06', status: '종료' }, { name: '2026 LG 협력사 ESG 평가', client: 'lg', period: '2026-04 ~ 2026-07', status: '종료' }] },
+82:    { no: '3-1', parentNo: '3', title: '수습 기간은 몇 개월입니까?', type: '라디오', attachment: 'N', updated: '26.07.20', campaigns: 0 },
+83:    { no: '3-2', parentNo: '3', title: '수습 기간 중 급여 지급 기준이 별도로 존재합니까?', type: '라디오', attachment: 'N', updated: '26.07.20', campaigns: 0 },
+84:    { no: '4', title: '외국인 근로자 고용 현황을 관리하고 있습니까?', type: '라디오', attachment: 'N', updated: '26.06.30', campaigns: 1, campaignList: [{ name: '2026 삼성 공급망 ESG 평가', client: 'samsung', period: '2026-03 ~ 2026-06', status: '종료' }] },
+85:    { no: '4-1', parentNo: '4', title: '외국인 근로자 비율(전체 인원 대비)을 알려주세요.', type: '드롭다운', attachment: 'N', updated: '26.06.30', campaigns: 0 },
+86:    { no: '5', title: '신규 입사자 온보딩 프로그램이 있습니까?', type: '라디오', attachment: 'N', updated: '26.05.12', campaigns: 2, campaignList: [{ name: '2026 삼성 공급망 ESG 평가', client: 'samsung', period: '2026-03 ~ 2026-06', status: '종료' }, { name: '2026 SK 협력사 ESG 평가', client: 'sk', period: '2026-05 ~ 2026-08', status: '진행중' }] },
+87:    { no: '5-1', parentNo: '5', title: '온보딩 프로그램의 평균 운영 기간은 얼마입니까?', type: '라디오', attachment: 'N', updated: '26.05.12', campaigns: 0 },
+88:    { no: '5-2', parentNo: '5', title: '온보딩 프로그램에 ESG 관련 교육이 포함되어 있습니까?', type: '라디오', attachment: 'N', updated: '26.05.12', campaigns: 0 },
+89:    { no: '6', title: '인사 평가 제도를 연 1회 이상 운영하고 있습니까?', type: '라디오', attachment: 'N', updated: '26.04.08', campaigns: 1, campaignList: [{ name: '2026 LG 협력사 ESG 평가', client: 'lg', period: '2026-04 ~ 2026-07', status: '종료' }] },
+90:    { no: '7', title: '근로자 개인 인사기록 관리 방식은 무엇입니까?', type: '드롭다운', attachment: 'N', updated: '26.03.25', campaigns: 0 },
+91:    { no: '8', title: '고용 형태별 인원 현황을 정기적으로 파악하고 있습니까?', type: '라디오', attachment: 'N', updated: '26.02.14', campaigns: 1, campaignList: [{ name: '2026 SK 협력사 ESG 평가', client: 'sk', period: '2026-05 ~ 2026-08', status: '진행중' }] },
+92:    { no: '9', title: '최근 1년간 신규 채용 인원을 알려주세요.', type: '텍스트', attachment: 'N', updated: '26.01.10', campaigns: 1, campaignList: [{ name: '2026 삼성 공급망 ESG 평가', client: 'samsung', period: '2026-03 ~ 2026-06', status: '종료' }] },
+93:    { no: '10', title: '채용 과정에서 외부 채용대행사를 이용하고 있습니까?', type: '라디오', attachment: 'N', updated: '25.12.05', campaigns: 0 },
+94:  ],
+95:
+96:  /* ── D.기본정보 ── */
+97:  'D-회사': [
+98:    { no: '1', title: '귀사의 법인명(상호)을 입력해 주세요.', type: '텍스트', attachment: 'N', updated: '26.09.10', campaigns: 3, campaignList: [{ name: '2026 삼성 공급망 ESG 평가', client: 'samsung', period: '2026-03~06', status: '종료' }, { name: '2026 SK 협력사 ESG 평가', client: 'sk', period: '2026-05~08', status: '진행중' }, { name: '2026 LG 협력사 ESG 평가', client: 'lg', period: '2026-04~07', status: '종료' }] },
+99:    { no: '1-1', parentNo: '1', title: '사업자등록번호를 입력해 주세요.', type: '텍스트', attachment: 'N', updated: '26.09.10', campaigns: 0 },
+100:    { no: '2', title: '본사 소재지(시/도)를 선택해 주세요.', type: '드롭다운', attachment: 'N', updated: '26.09.10', campaigns: 2, campaignList: [{ name: '2026 삼성 공급망 ESG 평가', client: 'samsung', period: '2026-03~06', status: '종료' }, { name: '2026 SK 협력사 ESG 평가', client: 'sk', period: '2026-05~08', status: '진행중' }] },
+101:    { no: '3', title: '설립 연도를 입력해 주세요.', type: '텍스트', attachment: 'N', updated: '26.08.20', campaigns: 2, campaignList: [{ name: '2026 삼성 공급망 ESG 평가', client: 'samsung', period: '2026-03~06', status: '종료' }, { name: '2026 LG 협력사 ESG 평가', client: 'lg', period: '2026-04~07', status: '종료' }] },
+102:    { no: '3-1', parentNo: '3', title: '기업 형태(법인/개인)를 선택해 주세요.', type: '라디오', attachment: 'N', updated: '26.08.20', campaigns: 0 },
+103:    { no: '4', title: '주요 사업 분야(업종)를 선택해 주세요.', type: '드롭다운', attachment: 'N', updated: '26.08.15', campaigns: 3, campaignList: [{ name: '2026 삼성 공급망 ESG 평가', client: 'samsung', period: '2026-03~06', status: '종료' }, { name: '2026 SK 협력사 ESG 평가', client: 'sk', period: '2026-05~08', status: '진행중' }, { name: '2026 LG 협력사 ESG 평가', client: 'lg', period: '2026-04~07', status: '종료' }] },
+104:    { no: '4-1', parentNo: '4', title: '세부 제품/서비스 내용을 입력해 주세요.', type: '텍스트', attachment: 'N', updated: '26.08.15', campaigns: 0 },
+105:    { no: '5', title: '국내 사업장 수를 입력해 주세요.', type: '텍스트', attachment: 'N', updated: '26.07.30', campaigns: 1, campaignList: [{ name: '2026 SK 협력사 ESG 평가', client: 'sk', period: '2026-05~08', status: '진행중' }] },
+106:    { no: '5-1', parentNo: '5', title: '해외 사업장 보유 여부를 선택해 주세요.', type: '라디오', attachment: 'N', updated: '26.07.30', campaigns: 0 },
+107:    { no: '6', title: '대표이사 성명을 입력해 주세요.', type: '텍스트', attachment: 'N', updated: '26.07.10', campaigns: 2, campaignList: [{ name: '2026 삼성 공급망 ESG 평가', client: 'samsung', period: '2026-03~06', status: '종료' }, { name: '2026 SK 협력사 ESG 평가', client: 'sk', period: '2026-05~08', status: '진행중' }] },
+108:    { no: '7', title: 'ESG 담당자 연락처(이메일)를 입력해 주세요.', type: '텍스트', attachment: 'N', updated: '26.06.25', campaigns: 1, campaignList: [{ name: '2026 LG 협력사 ESG 평가', client: 'lg', period: '2026-04~07', status: '종료' }] },
+109:    { no: '7-1', parentNo: '7', title: 'ESG 담당 부서명을 입력해 주세요.', type: '텍스트', attachment: 'N', updated: '26.06.25', campaigns: 0 },
+110:    { no: '8', title: '최근 결산 기준 연도를 입력해 주세요.', type: '텍스트', attachment: 'N', updated: '26.06.10', campaigns: 0 },
+111:    { no: '9', title: '지배주주/최대주주 현황을 입력해 주세요.', type: '텍스트', attachment: 'N', updated: '26.05.20', campaigns: 0 },
+112:    { no: '9-1', parentNo: '9', title: '최대주주 지분율(%)을 입력해 주세요.', type: '텍스트', attachment: 'N', updated: '26.05.20', campaigns: 0 },
+113:    { no: '10', title: '귀사 웹사이트 URL을 입력해 주세요.', type: '텍스트', attachment: 'N', updated: '26.04.15', campaigns: 1, campaignList: [{ name: '2026 삼성 공급망 ESG 평가', client: 'samsung', period: '2026-03~06', status: '종료' }] },
+114:  ],
+115:  'D-인력': [
+116:    { no: '1', title: '전체 임직원 수(정규직+비정규직)를 입력해 주세요.', type: '텍스트', attachment: 'N', updated: '26.09.10', campaigns: 3, campaignList: [{ name: '2026 삼성 공급망 ESG 평가', client: 'samsung', period: '2026-03~06', status: '종료' }, { name: '2026 SK 협력사 ESG 평가', client: 'sk', period: '2026-05~08', status: '진행중' }, { name: '2026 LG 협력사 ESG 평가', client: 'lg', period: '2026-04~07', status: '종료' }] },
+117:    { no: '1-1', parentNo: '1', title: '정규직 인원수를 입력해 주세요.', type: '텍스트', attachment: 'N', updated: '26.09.10', campaigns: 0 },
+118:    { no: '1-2', parentNo: '1', title: '비정규직 인원수를 입력해 주세요.', type: '텍스트', attachment: 'N', updated: '26.09.10', campaigns: 0 },
+119:    { no: '2', title: '성별 인원 현황(남/여 비율)을 입력해 주세요.', type: '텍스트', attachment: 'N', updated: '26.09.05', campaigns: 2, campaignList: [{ name: '2026 삼성 공급망 ESG 평가', client: 'samsung', period: '2026-03~06', status: '종료' }, { name: '2026 SK 협력사 ESG 평가', client: 'sk', period: '2026-05~08', status: '진행중' }] },
+120:    { no: '3', title: '연령대별 인원 분포를 알려주세요.', type: '텍스트', attachment: 'N', updated: '26.08.30', campaigns: 1, campaignList: [{ name: '2026 SK 협력사 ESG 평가', client: 'sk', period: '2026-05~08', status: '진행중' }] },
+121:    { no: '3-1', parentNo: '3', title: '30세 미만 비율(%)을 입력해 주세요.', type: '텍스트', attachment: 'N', updated: '26.08.30', campaigns: 0 },
+122:    { no: '4', title: '최근 1년 이직률(%)을 입력해 주세요.', type: '텍스트', attachment: 'N', updated: '26.08.20', campaigns: 2, campaignList: [{ name: '2026 삼성 공급망 ESG 평가', client: 'samsung', period: '2026-03~06', status: '종료' }, { name: '2026 LG 협력사 ESG 평가', client: 'lg', period: '2026-04~07', status: '종료' }] },
+123:    { no: '4-1', parentNo: '4', title: '자발적 이직률(%)을 입력해 주세요.', type: '텍스트', attachment: 'N', updated: '26.08.20', campaigns: 0 },
+124:    { no: '5', title: '임원(이사 이상) 인원수를 입력해 주세요.', type: '텍스트', attachment: 'N', updated: '26.08.10', campaigns: 1, campaignList: [{ name: '2026 SK 협력사 ESG 평가', client: 'sk', period: '2026-05~08', status: '진행중' }] },
+125:    { no: '5-1', parentNo: '5', title: '여성 임원 비율(%)을 입력해 주세요.', type: '텍스트', attachment: 'N', updated: '26.08.10', campaigns: 0 },
+126:    { no: '6', title: '장애인 고용 인원수를 입력해 주세요.', type: '텍스트', attachment: 'N', updated: '26.07.25', campaigns: 0 },
+127:    { no: '7', title: '외국인 근로자 인원수를 입력해 주세요.', type: '텍스트', attachment: 'N', updated: '26.07.10', campaigns: 0 },
+128:    { no: '8', title: '최근 1년 신규 채용 인원수를 입력해 주세요.', type: '텍스트', attachment: 'N', updated: '26.06.20', campaigns: 1, campaignList: [{ name: '2026 LG 협력사 ESG 평가', client: 'lg', period: '2026-04~07', status: '종료' }] },
+129:    { no: '9', title: '육아휴직 사용 인원(남/여)을 입력해 주세요.', type: '텍스트', attachment: 'N', updated: '26.05.30', campaigns: 0 },
+130:    { no: '10', title: '산업재해 발생 건수를 입력해 주세요.', type: '텍스트', attachment: 'N', updated: '26.05.10', campaigns: 2, campaignList: [{ name: '2026 삼성 공급망 ESG 평가', client: 'samsung', period: '2026-03~06', status: '종료' }, { name: '2026 SK 협력사 ESG 평가', client: 'sk', period: '2026-05~08', status: '진행중' }] },
+131:  ],
+132:  'D-재무': [
+133:    { no: '1', title: '최근 결산 연도 매출액(백만 원)을 입력해 주세요.', type: '텍스트', attachment: 'N', updated: '26.09.10', campaigns: 3, campaignList: [{ name: '2026 삼성 공급망 ESG 평가', client: 'samsung', period: '2026-03~06', status: '종료' }, { name: '2026 SK 협력사 ESG 평가', client: 'sk', period: '2026-05~08', status: '진행중' }, { name: '2026 LG 협력사 ESG 평가', client: 'lg', period: '2026-04~07', status: '종료' }] },
+134:    { no: '1-1', parentNo: '1', title: '전년 대비 매출 증감률(%)을 입력해 주세요.', type: '텍스트', attachment: 'N', updated: '26.09.10', campaigns: 0 },
+135:    { no: '2', title: '영업이익(백만 원)을 입력해 주세요.', type: '텍스트', attachment: 'N', updated: '26.09.05', campaigns: 2, campaignList: [{ name: '2026 삼성 공급망 ESG 평가', client: 'samsung', period: '2026-03~06', status: '종료' }, { name: '2026 SK 협력사 ESG 평가', client: 'sk', period: '2026-05~08', status: '진행중' }] },
+136:    { no: '3', title: '총자산(백만 원)을 입력해 주세요.', type: '텍스트', attachment: 'N', updated: '26.08.25', campaigns: 2, campaignList: [{ name: '2026 삼성 공급망 ESG 평가', client: 'samsung', period: '2026-03~06', status: '종료' }, { name: '2026 LG 협력사 ESG 평가', client: 'lg', period: '2026-04~07', status: '종료' }] },
+137:    { no: '3-1', parentNo: '3', title: '부채비율(%)을 입력해 주세요.', type: '텍스트', attachment: 'N', updated: '26.08.25', campaigns: 0 },
+138:    { no: '4', title: '신용등급(해당 시)을 입력해 주세요.', type: '텍스트', attachment: 'N', updated: '26.08.15', campaigns: 1, campaignList: [{ name: '2026 SK 협력사 ESG 평가', client: 'sk', period: '2026-05~08', status: '진행중' }] },
+139:    { no: '4-1', parentNo: '4', title: '신용평가 기관명을 입력해 주세요.', type: '텍스트', attachment: 'N', updated: '26.08.15', campaigns: 0 },
+140:    { no: '5', title: '외부 감사 여부를 선택해 주세요.', type: '라디오', attachment: 'N', updated: '26.08.05', campaigns: 2, campaignList: [{ name: '2026 삼성 공급망 ESG 평가', client: 'samsung', period: '2026-03~06', status: '종료' }, { name: '2026 LG 협력사 ESG 평가', client: 'lg', period: '2026-04~07', status: '종료' }] },
+141:    { no: '5-1', parentNo: '5', title: '감사 법인명을 입력해 주세요.', type: '텍스트', attachment: 'N', updated: '26.08.05', campaigns: 0 },
+142:    { no: '6', title: '보험 가입 현황(배상책임 등)을 선택해 주세요.', type: '체크박스', attachment: 'N', updated: '26.07.20', campaigns: 0 },
+143:    { no: '7', title: 'ESG 투자 금액(백만 원)을 입력해 주세요.', type: '텍스트', attachment: 'N', updated: '26.07.05', campaigns: 0 },
+144:    { no: '8', title: '연구개발(R&D) 투자 금액(백만 원)을 입력해 주세요.', type: '텍스트', attachment: 'N', updated: '26.06.15', campaigns: 1, campaignList: [{ name: '2026 SK 협력사 ESG 평가', client: 'sk', period: '2026-05~08', status: '진행중' }] },
+145:    { no: '9', title: '최근 3년 매출 추이를 입력해 주세요.', type: '텍스트', attachment: 'N', updated: '26.05.25', campaigns: 0 },
+146:    { no: '10', title: '재무제표 공시 여부를 선택해 주세요.', type: '라디오', attachment: 'Y', updated: '26.05.05', campaigns: 1, campaignList: [{ name: '2026 LG 협력사 ESG 평가', client: 'lg', period: '2026-04~07', status: '종료' }] },
+147:  ],
+148:  'D-공급망': [
+149:    { no: '1', title: '1차 공급사 업체 수를 입력해 주세요.', type: '텍스트', attachment: 'N', updated: '26.09.10', campaigns: 3, campaignList: [{ name: '2026 삼성 공급망 ESG 평가', client: 'samsung', period: '2026-03~06', status: '종료' }, { name: '2026 SK 협력사 ESG 평가', client: 'sk', period: '2026-05~08', status: '진행중' }, { name: '2026 LG 협력사 ESG 평가', client: 'lg', period: '2026-04~07', status: '종료' }] },
+150:    { no: '1-1', parentNo: '1', title: '국내 공급사 수를 입력해 주세요.', type: '텍스트', attachment: 'N', updated: '26.09.10', campaigns: 0 },
+151:    { no: '1-2', parentNo: '1', title: '해외 공급사 수를 입력해 주세요.', type: '텍스트', attachment: 'N', updated: '26.09.10', campaigns: 0 },
+152:    { no: '2', title: '주요 원자재 조달 국가를 입력해 주세요.', type: '텍스트', attachment: 'N', updated: '26.09.05', campaigns: 2, campaignList: [{ name: '2026 삼성 공급망 ESG 평가', client: 'samsung', period: '2026-03~06', status: '종료' }, { name: '2026 SK 협력사 ESG 평가', client: 'sk', period: '2026-05~08', status: '진행중' }] },
+153:    { no: '2-1', parentNo: '2', title: '분쟁광물 포함 원자재 여부를 선택해 주세요.', type: '라디오', attachment: 'N', updated: '26.09.05', campaigns: 0 },
+154:    { no: '3', title: '상위 5개 공급사 매입 비중(%)을 입력해 주세요.', type: '텍스트', attachment: 'N', updated: '26.08.28', campaigns: 1, campaignList: [{ name: '2026 SK 협력사 ESG 평가', client: 'sk', period: '2026-05~08', status: '진행중' }] },
+155:    { no: '4', title: '공급망 행동규범(CoC) 체결 업체 수를 입력해 주세요.', type: '텍스트', attachment: 'N', updated: '26.08.18', campaigns: 2, campaignList: [{ name: '2026 삼성 공급망 ESG 평가', client: 'samsung', period: '2026-03~06', status: '종료' }, { name: '2026 LG 협력사 ESG 평가', client: 'lg', period: '2026-04~07', status: '종료' }] },
+156:    { no: '4-1', parentNo: '4', title: 'CoC 미체결 업체에 대한 조치 방침을 입력해 주세요.', type: '텍스트', attachment: 'N', updated: '26.08.18', campaigns: 0 },
+157:    { no: '5', title: '공급망 ESG 평가 실시 업체 수를 입력해 주세요.', type: '텍스트', attachment: 'N', updated: '26.08.05', campaigns: 2, campaignList: [{ name: '2026 삼성 공급망 ESG 평가', client: 'samsung', period: '2026-03~06', status: '종료' }, { name: '2026 SK 협력사 ESG 평가', client: 'sk', period: '2026-05~08', status: '진행중' }] },
+158:    { no: '5-1', parentNo: '5', title: 'ESG 평가 결과 부적격 판정 업체 수를 입력해 주세요.', type: '텍스트', attachment: 'N', updated: '26.08.05', campaigns: 0 },
+159:    { no: '6', title: '귀사가 납품하는 주요 고객사를 입력해 주세요.', type: '텍스트', attachment: 'N', updated: '26.07.22', campaigns: 0 },
+160:    { no: '7', title: '물류·배송 탄소발자국 관리 여부를 선택해 주세요.', type: '라디오', attachment: 'N', updated: '26.06.18', campaigns: 0 },
+161:    { no: '8', title: '현지화 구매(Local Sourcing) 비율(%)을 입력해 주세요.', type: '텍스트', attachment: 'N', updated: '26.05.28', campaigns: 0 },
+162:    { no: '9', title: '주요 공급사와의 장기 계약 비율(%)을 입력해 주세요.', type: '텍스트', attachment: 'N', updated: '26.05.08', campaigns: 0 },
+163:    { no: '10', title: '공급망 리스크 지도(Risk Map) 작성 여부를 선택해 주세요.', type: '라디오', attachment: 'N', updated: '26.04.18', campaigns: 1, campaignList: [{ name: '2026 LG 협력사 ESG 평가', client: 'lg', period: '2026-04~07', status: '종료' }] },
+164:  ],
+165:  'D-인증': [
+166:    { no: '1', title: '보유 중인 ISO 인증을 선택해 주세요.', type: '체크박스', attachment: 'N', updated: '26.09.10', campaigns: 3, campaignList: [{ name: '2026 삼성 공급망 ESG 평가', client: 'samsung', period: '2026-03~06', status: '종료' }, { name: '2026 SK 협력사 ESG 평가', client: 'sk', period: '2026-05~08', status: '진행중' }, { name: '2026 LG 협력사 ESG 평가', client: 'lg', period: '2026-04~07', status: '종료' }] },
+167:    { no: '1-1', parentNo: '1', title: 'ISO 9001(품질경영) 인증 취득 연도를 입력해 주세요.', type: '텍스트', attachment: 'N', updated: '26.09.10', campaigns: 0 },
+168:    { no: '1-2', parentNo: '1', title: 'ISO 14001(환경경영) 인증 취득 연도를 입력해 주세요.', type: '텍스트', attachment: 'N', updated: '26.09.10', campaigns: 0 },
+169:    { no: '2', title: '정부·기관 표창 또는 우수기업 지정 현황을 입력해 주세요.', type: '텍스트', attachment: 'N', updated: '26.09.05', campaigns: 2, campaignList: [{ name: '2026 삼성 공급망 ESG 평가', client: 'samsung', period: '2026-03~06', status: '종료' }, { name: '2026 SK 협력사 ESG 평가', client: 'sk', period: '2026-05~08', status: '진행중' }] },
+170:    { no: '2-1', parentNo: '2', title: '수상 연도 및 수여 기관을 입력해 주세요.', type: '텍스트', attachment: 'N', updated: '26.09.05', campaigns: 0 },
+171:    { no: '3', title: '특허 등 지식재산권 보유 현황을 입력해 주세요.', type: '텍스트', attachment: 'N', updated: '26.08.22', campaigns: 1, campaignList: [{ name: '2026 SK 협력사 ESG 평가', client: 'sk', period: '2026-05~08', status: '진행중' }] },
+172:    { no: '3-1', parentNo: '3', title: '등록 특허 건수를 입력해 주세요.', type: '텍스트', attachment: 'N', updated: '26.08.22', campaigns: 0 },
+173:    { no: '4', title: '안전보건경영시스템(ISO 45001) 인증 여부를 선택해 주세요.', type: '라디오', attachment: 'N', updated: '26.08.12', campaigns: 2, campaignList: [{ name: '2026 삼성 공급망 ESG 평가', client: 'samsung', period: '2026-03~06', status: '종료' }, { name: '2026 LG 협력사 ESG 평가', client: 'lg', period: '2026-04~07', status: '종료' }] },
+174:    { no: '4-1', parentNo: '4', title: 'ISO 45001 인증 취득 연도를 입력해 주세요.', type: '텍스트', attachment: 'N', updated: '26.08.12', campaigns: 0 },
+175:    { no: '5', title: 'ESG 평가 등급(외부 기관) 취득 여부를 선택해 주세요.', type: '라디오', attachment: 'N', updated: '26.08.02', campaigns: 2, campaignList: [{ name: '2026 삼성 공급망 ESG 평가', client: 'samsung', period: '2026-03~06', status: '종료' }, { name: '2026 SK 협력사 ESG 평가', client: 'sk', period: '2026-05~08', status: '진행중' }] },
+176:    { no: '5-1', parentNo: '5', title: '평가 기관명 및 등급을 입력해 주세요.', type: '텍스트', attachment: 'N', updated: '26.08.02', campaigns: 0 },
+177:    { no: '6', title: '탄소경영 인증(CDP 등) 취득 여부를 선택해 주세요.', type: '라디오', attachment: 'N', updated: '26.07.18', campaigns: 0 },
+178:    { no: '7', title: '공정무역 또는 사회적 책임 인증 여부를 선택해 주세요.', type: '라디오', attachment: 'N', updated: '26.06.28', campaigns: 0 },
+179:    { no: '8', title: '정보보호 인증(ISMS-P 등) 취득 여부를 선택해 주세요.', type: '라디오', attachment: 'N', updated: '26.06.08', campaigns: 0 },
+180:    { no: '9', title: '여성기업·사회적기업 등 특수 인증 보유 여부를 선택해 주세요.', type: '라디오', attachment: 'N', updated: '26.05.18', campaigns: 0 },
+181:    { no: '10', title: '기타 보유 인증 현황을 입력해 주세요.', type: '텍스트', attachment: 'N', updated: '26.04.28', campaigns: 0 },
+182:  ],
+183:};
+184:
+185:const DEFAULT_QUESTIONS = QUESTIONS_BY_FOLDER['L-고용'];
+186:
+187:interface Props {
+188:  onNavigateAdd: () => void;
+189:}
+190:
+191:export default function QuestionLibraryBasicSet({ onNavigateAdd }: Props) {
+192:  const [openFolders, setOpenFolders] = useState<Set<string>>(new Set(['L', 'S', 'E', 'ET', 'M', 'D']));
+193:  const [selectedFolder, setSelectedFolder] = useState('L-고용');
+194:  const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set(['3', '4', '5']));
+195:  const [campaignModal, setCampaignModal] = useState<Question | null>(null);
+196:  const [versionModal, setVersionModal] = useState(false);
+197:  const [setName, setSetName] = useState('2026 공급망 ESG 기본 SET');
+198:  const [version, setVersion] = useState('v3.2');
+199:  const [updated, setUpdated] = useState('2026.09.17');
+200:  const [newSetName, setNewSetName] = useState('2026 공급망 ESG 기본 SET');
+201:  const [newVersion, setNewVersion] = useState('');
+202:  const [examType, setExamType] = useState('');
+203:  const [qType, setQType] = useState('');
+204:  const [searchText, setSearchText] = useState('');
+205:
+206:  const questions = QUESTIONS_BY_FOLDER[selectedFolder] ?? DEFAULT_QUESTIONS;
+207:
+208:  const toggleFolder = (id: string) => {
+209:    setOpenFolders(prev => {
+210:      const next = new Set(prev);
+211:      if (next.has(id)) next.delete(id);
+212:      else next.add(id);
+213:      return next;
+214:    });
+215:  };
+216:
+217:  const toggleRow = (no: string) => {
+218:    setExpandedRows(prev => {
+219:      const next = new Set(prev);
+220:      if (next.has(no)) next.delete(no);
+221:      else next.add(no);
+222:      return next;
+223:    });
+224:  };
+225:
+226:  const folderLabel = FOLDER_TREE.flatMap(n => n.children ?? []).find(n => n.id === selectedFolder)?.label ?? '고용 관리';
+227:
+228:  const visibleQuestions = questions.filter(q => {
+229:    if (q.parentNo && !expandedRows.has(q.parentNo)) return false;
+230:    return true;
+231:  });
+232:
+233:  const handleSaveVersion = () => {
+234:    if (newVersion.trim()) {
+235:      setVersion(newVersion.trim());
+236:      const today = new Date();
+237:      setUpdated(`${today.getFullYear()}.${String(today.getMonth() + 1).padStart(2, '0')}.${String(today.getDate()).padStart(2, '0')}`);
+238:    }
+239:    if (newSetName.trim()) setSetName(newSetName.trim());
+240:    setVersionModal(false);
+241:    setNewVersion('');
+242:  };
+243:
+244:  return (
+245:    <div className="flex flex-col" style={{ minHeight: '100%' }}>
+246:      {/* Breadcrumb */}
+247:      <div className="flex items-center gap-2 mb-4" style={{ fontSize: 14, color: '#555' }}>
+248:        <span style={{ color: '#1a3055', fontWeight: 600 }}>질의 라이브러리</span>
+249:        <span>›</span>
+250:        <span style={{ fontWeight: 700 }}>기본 SET</span>
+251:      </div>
+252:
+253:      <div className="flex gap-4" style={{ flex: 1 }}>
+254:        {/* Left folder tree panel */}
+255:        <div style={{ width: 160, flexShrink: 0, background: '#fff', border: '1px solid #e0e0e0', borderRadius: 4, padding: '8px 0', fontSize: 12, overflowY: 'auto' }}>
+256:          <div style={{ padding: '6px 12px', fontWeight: 700, color: '#1a3055', borderBottom: '1px solid #e8e8e8', fontSize: 13, marginBottom: 4 }}>기본 SET</div>
+257:          {FOLDER_TREE.map(node => (
+258:            <div key={node.id}>
+259:              <button
+260:                onClick={() => node.children && toggleFolder(node.id)}
+261:                className="w-full text-left hover:bg-blue-50"
+262:                style={{ padding: '5px 12px', color: '#333', fontWeight: 600, fontSize: 12 }}
+263:              >
+264:                {node.children ? (openFolders.has(node.id) ? '▼ ' : '▶ ') : ''}{node.label.replace(/^[▼▶] /, '')}
+265:              </button>
+266:              {node.children && openFolders.has(node.id) && node.children.map(child => (
+267:                <button
+268:                  key={child.id}
+269:                  onClick={() => setSelectedFolder(child.id)}
+270:                  className="w-full text-left hover:bg-blue-50"
+271:                  style={{
+272:                    padding: '4px 12px 4px 22px',
+273:                    fontSize: 11,
+274:                    color: selectedFolder === child.id ? '#fff' : '#555',
+275:                    background: selectedFolder === child.id ? '#1a3055' : undefined,
+276:                  }}
+277:                >
+278:                  {child.label}
+279:                </button>
+280:              ))}
+281:            </div>
+282:          ))}
+283:        </div>
+284:
+285:        {/* Right content */}
+286:        <div className="flex flex-col flex-1" style={{ minWidth: 0 }}>
+287:          {/* Search/filter bar */}
+288:          <div className="flex items-center gap-2 mb-3">
+289:            <select value={examType} onChange={e => setExamType(e.target.value)} style={{ border: '1px solid #ccc', borderRadius: 4, padding: '5px 10px', fontSize: 13, height: 34 }}>
+290:              <option value="">시험분류</option>
+291:              <option>ESG 공급망</option>
+292:              <option>ESG 협력사</option>
+293:            </select>
+294:            <select value={qType} onChange={e => setQType(e.target.value)} style={{ border: '1px solid #ccc', borderRadius: 4, padding: '5px 10px', fontSize: 13, height: 34 }}>
+295:              <option value="">질의유형</option>
+296:              <option>라디오</option>
+297:              <option>체크박스</option>
+298:              <option>드롭다운</option>
+299:              <option>텍스트상자</option>
+300:              <option>텍스트그룹</option>
+301:              <option>정량데이터</option>
+302:            </select>
+303:            <input
+304:              value={searchText}
+305:              onChange={e => setSearchText(e.target.value)}
+306:              placeholder="검색 질의 제목을 입력하세요"
+307:              style={{ flex: 1, border: '1px solid #ccc', borderRadius: 4, padding: '5px 12px', fontSize: 13, height: 34 }}
+308:            />
+309:            <button style={{ background: '#1a3055', color: '#fff', border: 'none', borderRadius: 4, padding: '5px 16px', fontSize: 13, height: 34, cursor: 'pointer' }}>
+310:              🔍 검색
+311:            </button>
+312:          </div>
+313:
+314:          {/* SET info bar */}
+315:          <div className="flex items-center gap-4 mb-3" style={{ background: '#fff', border: '1px solid #e0e0e0', borderRadius: 4, padding: '10px 16px' }}>
+316:            <span style={{ fontSize: 13, color: '#666' }}>SET 이름</span>
+317:            <span style={{ fontSize: 13, fontWeight: 700 }}>{setName}</span>
+318:            <span style={{ color: '#ccc' }}>|</span>
+319:            <span style={{ fontSize: 13, color: '#666' }}>Version</span>
+320:            <span style={{ fontSize: 13, fontWeight: 700, color: '#1a3055' }}>{version}</span>
+321:            <span style={{ color: '#ccc' }}>|</span>
+322:            <span style={{ fontSize: 13, color: '#666' }}>Updated</span>
+323:            <span style={{ fontSize: 13, fontWeight: 700 }}>{updated}</span>
+324:            <div style={{ flex: 1 }} />
+325:            <button style={{ border: '1px solid #ccc', background: '#fff', borderRadius: 4, padding: '5px 14px', fontSize: 13, cursor: 'pointer' }}>저장</button>
+326:            <button
+327:              onClick={() => { setNewSetName(setName); setNewVersion(''); setVersionModal(true); }}
+328:              style={{ background: '#e63946', color: '#fff', border: 'none', borderRadius: 4, padding: '5px 14px', fontSize: 13, cursor: 'pointer' }}
+329:            >
+330:              버전 업뎃
+331:            </button>
+332:            <button
+333:              onClick={onNavigateAdd}
+334:              style={{ background: '#1a3055', color: '#fff', border: 'none', borderRadius: 4, padding: '5px 14px', fontSize: 13, cursor: 'pointer' }}
+335:            >
+336:              + 질의 추가
+337:            </button>
+338:          </div>
+339:
+340:          {/* Folder label */}
+341:          <div className="flex items-center gap-2 mb-2" style={{ fontSize: 13 }}>
+342:            <span style={{ color: '#555' }}>폴더:</span>
+343:            <span style={{ fontWeight: 700 }}>{folderLabel}</span>
+344:            <button style={{ color: '#1a3055', fontSize: 12, textDecoration: 'underline', background: 'none', border: 'none', cursor: 'pointer' }}>✏ 수정</button>
+345:          </div>
+346:
+347:          {/* Table */}
+348:          <div style={{ background: '#fff', border: '1px solid #e0e0e0', borderRadius: 4, overflow: 'hidden' }}>
+349:            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+350:              <thead>
+351:                <tr style={{ background: '#f7f8fa', borderBottom: '1px solid #e0e0e0' }}>
+352:                  <th style={{ padding: '9px 12px', textAlign: 'left', width: 70, fontWeight: 600, color: '#333' }}>NO</th>
+353:                  <th style={{ padding: '9px 12px', textAlign: 'left', fontWeight: 600, color: '#333' }}>질의 제목</th>
+354:                  <th style={{ padding: '9px 12px', textAlign: 'center', width: 90, fontWeight: 600, color: '#333' }}>질의 유형</th>
+355:                  <th style={{ padding: '9px 12px', textAlign: 'center', width: 70, fontWeight: 600, color: '#333' }}>첨부파일</th>
+356:                  <th style={{ padding: '9px 12px', textAlign: 'center', width: 80, fontWeight: 600, color: '#333' }}>업데이트</th>
+357:                  <th style={{ padding: '9px 12px', textAlign: 'center', width: 80, fontWeight: 600, color: '#333' }}>반영 캠페인</th>
+358:                </tr>
+359:              </thead>
+360:              <tbody>
+361:                {visibleQuestions.map(q => {
+362:                  const isParent = questions.some(c => c.parentNo === q.no);
+363:                  const isChild = !!q.parentNo;
+364:                  const isExpanded = expandedRows.has(q.no);
+365:                  return (
+366:                    <tr key={q.no} style={{ borderBottom: '1px solid #f0f0f0', background: isChild ? '#fafafa' : '#fff' }}>
+367:                      <td style={{ padding: '7px 12px', color: '#555' }}>
+368:                        <span style={{ paddingLeft: isChild ? 16 : 0 }}>
+369:                          {isParent && (
+370:                            <button onClick={() => toggleRow(q.no)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 11, marginRight: 4, color: '#555' }}>
+371:                              {isExpanded ? '▼' : '▶'}
+372:                            </button>
+373:                          )}
+374:                          {q.no}
+375:                        </span>
+376:                      </td>
+377:                      <td style={{ padding: '7px 12px' }}>
+378:                        <span style={{ paddingLeft: isChild ? 16 : 0 }}>
+379:                          {isChild && <span style={{ color: '#888', marginRight: 6 }}>ㄴ</span>}
+380:                          <button style={{ background: 'none', border: 'none', color: '#1a6fbf', cursor: 'pointer', fontSize: 13, textDecoration: 'none' }}>
+381:                            {q.title}
+382:                          </button>
+383:                        </span>
+384:                      </td>
+385:                      <td style={{ padding: '7px 12px', textAlign: 'center', color: '#555' }}>{q.type}</td>
+386:                      <td style={{ padding: '7px 12px', textAlign: 'center', color: '#555' }}>{q.attachment}</td>
+387:                      <td style={{ padding: '7px 12px', textAlign: 'center', color: '#555' }}>{q.updated}</td>
+388:                      <td style={{ padding: '7px 12px', textAlign: 'center' }}>
+389:                        {q.campaigns > 0 ? (
+390:                          <button
+391:                            onClick={() => setCampaignModal(q)}
+392:                            style={{ background: 'none', border: 'none', color: '#1a6fbf', cursor: 'pointer', fontWeight: 700, fontSize: 13 }}
+393:                          >
+394:                            {q.campaigns}
+395:                          </button>
+396:                        ) : (
+397:                          <span style={{ color: '#999' }}>0</span>
+398:                        )}
+399:                      </td>
+400:                    </tr>
+401:                  );
+402:                })}
+403:              </tbody>
+404:            </table>
+405:          </div>
+406:        </div>
+407:      </div>
+408:
+409:      {/* Campaign Usage Modal */}
+410:      {campaignModal && (
+411:        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+412:          <div style={{ background: '#fff', borderRadius: 6, padding: '28px 32px', minWidth: 520, boxShadow: '0 8px 32px rgba(0,0,0,0.18)' }}>
+413:            <div className="flex items-center justify-between mb-4">
+414:              <span style={{ fontWeight: 700, fontSize: 16 }}>질의 사용 캠페인</span>
+415:              <button onClick={() => setCampaignModal(null)} style={{ background: 'none', border: 'none', fontSize: 18, cursor: 'pointer', color: '#888' }}>×</button>
+416:            </div>
+417:            <div style={{ marginBottom: 12, fontSize: 13, color: '#555' }}>질의 NO: {campaignModal.no}</div>
+418:            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+419:              <thead>
+420:                <tr style={{ background: '#f7f8fa', borderBottom: '1px solid #e0e0e0' }}>
+421:                  <th style={{ padding: '8px 12px', textAlign: 'left', fontWeight: 600 }}>캠페인명</th>
+422:                  <th style={{ padding: '8px 12px', textAlign: 'left', fontWeight: 600 }}>고객사</th>
+423:                  <th style={{ padding: '8px 12px', textAlign: 'left', fontWeight: 600 }}>기간</th>
+424:                  <th style={{ padding: '8px 12px', textAlign: 'left', fontWeight: 600 }}>상태</th>
+425:                </tr>
+426:              </thead>
+427:              <tbody>
+428:                {(campaignModal.campaignList ?? []).map((c, i) => (
+429:                  <tr key={i} style={{ borderBottom: '1px solid #f0f0f0' }}>
+430:                    <td style={{ padding: '8px 12px' }}>{c.name}</td>
+431:                    <td style={{ padding: '8px 12px' }}>{c.client}</td>
+432:                    <td style={{ padding: '8px 12px' }}>{c.period}</td>
+433:                    <td style={{ padding: '8px 12px', color: c.status === '진행중' ? '#2e7d32' : '#555' }}>{c.status}</td>
+434:                  </tr>
+435:                ))}
+436:              </tbody>
+437:            </table>
+438:            <div className="flex justify-end mt-4">
+439:              <button onClick={() => setCampaignModal(null)} style={{ border: '1px solid #ccc', background: '#fff', borderRadius: 4, padding: '7px 24px', fontSize: 13, cursor: 'pointer' }}>닫기</button>
+440:            </div>
+441:          </div>
+442:        </div>
+443:      )}
+444:
+445:      {/* Version Update Modal */}
+446:      {versionModal && (
+447:        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+448:          <div style={{ background: '#fff', borderRadius: 6, padding: '28px 32px', minWidth: 460, boxShadow: '0 8px 32px rgba(0,0,0,0.18)' }}>
+449:            <div className="flex items-center justify-between mb-5">
+450:              <span style={{ fontWeight: 700, fontSize: 16 }}>SET 버전 업데이트</span>
+451:              <button onClick={() => setVersionModal(false)} style={{ background: 'none', border: 'none', fontSize: 18, cursor: 'pointer', color: '#888' }}>×</button>
+452:            </div>
+453:            <div style={{ background: '#f7f8fa', border: '1px solid #e8e8e8', borderRadius: 4, padding: '16px 20px', marginBottom: 20 }}>
+454:              <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 10, color: '#333' }}>현재 정보</div>
+455:              <div className="flex gap-8" style={{ fontSize: 13 }}>
+456:                <div>
+457:                  <div style={{ color: '#888', marginBottom: 4 }}>현재 SET 이름</div>
+458:                  <div style={{ fontWeight: 600 }}>{setName}</div>
+459:                </div>
+460:                <div>
+461:                  <div style={{ color: '#888', marginBottom: 4 }}>현재 Version</div>
+462:                  <div style={{ fontWeight: 600 }}>{version}</div>
+463:                </div>
+464:                <div>
+465:                  <div style={{ color: '#888', marginBottom: 4 }}>현재 Update Date</div>
+466:                  <div style={{ fontWeight: 600 }}>{updated}</div>
+467:                </div>
+468:              </div>
+469:            </div>
+470:            <div style={{ marginBottom: 14 }}>
+471:              <label style={{ fontSize: 13, fontWeight: 600, display: 'block', marginBottom: 6 }}>새 SET 이름</label>
+472:              <input
+473:                value={newSetName}
+474:                onChange={e => setNewSetName(e.target.value)}
+475:                style={{ width: '100%', border: '1px solid #ccc', borderRadius: 4, padding: '8px 12px', fontSize: 13 }}
+476:              />
+477:            </div>
+478:            <div style={{ marginBottom: 20 }}>
+479:              <label style={{ fontSize: 13, fontWeight: 600, display: 'block', marginBottom: 6 }}>새 Version</label>
+480:              <input
+481:                value={newVersion}
+482:                onChange={e => setNewVersion(e.target.value)}
+483:                placeholder="예: v3.3"
+484:                style={{ width: '100%', border: '1px solid #ccc', borderRadius: 4, padding: '8px 12px', fontSize: 13 }}
+485:              />
+486:            </div>
+487:            <div className="flex justify-end gap-2">
+488:              <button onClick={() => setVersionModal(false)} style={{ border: '1px solid #ccc', background: '#fff', borderRadius: 4, padding: '7px 24px', fontSize: 13, cursor: 'pointer' }}>취소</button>
+489:              <button onClick={handleSaveVersion} style={{ background: '#e63946', color: '#fff', border: 'none', borderRadius: 4, padding: '7px 24px', fontSize: 13, cursor: 'pointer' }}>저장</button>
+490:            </div>
+491:          </div>
+492:        </div>
+493:      )}
+494:    </div>
+495:  );
+496:}
+
+(End of file — 496 lines.)
